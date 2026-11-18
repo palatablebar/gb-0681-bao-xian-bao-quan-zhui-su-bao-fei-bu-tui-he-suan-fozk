@@ -7,7 +7,7 @@
 | 模块 | 使用者动作 | 入口 | 核心文件 | 测试 |
 |---|---|---|---|---|
 | M1 保单采信 | 查看并复算保单采信 | `/api/m1_ingest` | `app/modules/m1_ingest/reader.py` | `tests/test_ingest.py` |
-| M2 责任映射 | 查看并复算责任映射 | `/api/m2_mapping` | `app/modules/m2_mapping/rules.py` | `tests/test_mapping.py` |
+| M2 责任映射 | 查看并复算责任映射 | `/api/m2_mapping` | `app/modules/m2_mapping/rules.py` `app/modules/m2_mapping/identity.py` | `tests/test_mapping.py` `tests/test_identity.py` |
 | M3 保全选版 | 查看并复算保全选版 | `/api/m3_versions` | `app/modules/m3_versions/rules.py` | `tests/test_versions.py` |
 | M4 承保切片 | 查看并复算承保切片 | `/api/m4_segments` | `app/modules/m4_segments/rules.py` | `tests/test_segments.py` |
 | M5 保费重算 | 查看并复算保费重算 | `/api/m5_calculate` | `app/modules/m5_calculate/rules.py` | `tests/test_calculate.py` |
@@ -31,6 +31,9 @@
 | TRAP-26 | 旧版本复核 | 覆盖新结论 | 事务条件更新 | `app/store.py` | `tests/test_archive.py::test_stale_review` |
 | TRAP-23 | 生效日端点 | 双计生效日 | 半开区间 | `app/modules/m4_segments/rules.py` | `tests/test_segments.py::test_halfopen_conservation` |
 | TRAP-24 | 分币尾差 | 段合计不等 | 最大余额法 | `app/modules/m5_calculate/rules.py` | `tests/test_calculate.py::test_largest_remainder_conserves` |
+| TRAP-27 | 同号不同人 | 按单号合并拼接 | 被保人拆分，新系统为准 | `app/modules/m2_mapping/identity.py` | `tests/test_identity.py::test_collision_split_keeps_new_system_number` |
+| TRAP-28 | 续接换号 | 按单号拆开少算已交 | 链根归属按链汇总 | `app/modules/m2_mapping/identity.py` | `tests/test_identity.py::test_renewal_chain_attributes_to_root` |
+| TRAP-29 | 归并失败丢记录 | 静默丢弃断追溯 | IDENTITY隔离计入对账 | `app/modules/m2_mapping/identity.py` | `tests/test_identity.py::test_dangling_renewal_quarantined_not_dropped` |
 
 ## 对账规则
 

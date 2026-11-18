@@ -11,11 +11,17 @@ def allocate(values):
 
 def apply(state):
     calculations=[];total=Decimal(0);paidtotal=Decimal(0)
-    for p in state['policies']:
-        segments=[s for s in state['segments'] if s['id']==p['id']]
-        allocated=allocate([s['exact'] for s in segments]);expected=sum(allocated,Decimal(0))
-        paid=sum((Decimal(str(r['paid'])) for r in state['rows'] if r['policy_id']==p['id']),Decimal(0))
-        for s,value in zip(segments,allocated):s['premium']=str(value)
-        calculations.append({'id':p['id'],'line':p['base']['_line'],'code':'SUPPLEMENT' if expected>paid else 'REFUND' if expected<paid else 'EVEN','expected':str(expected),'paid':str(paid),'difference':str(expected-paid),'segments':segments})
+    owners={}
+    for p in state['policies']:owners.setdefault(p.get('owner') or p['id'],[]).append(p)
+    for owner,members in owners.items():
+        segments=[];expected=Decimal(0)
+        for p in members:
+            own=[s for s in state['segments'] if s['id']==p['id']]
+            allocated=allocate([s['exact'] for s in own])
+            for s,value in zip(own,allocated):s['premium']=str(value)
+            expected+=sum(allocated,Decimal(0));segments+=own
+        paid=sum((Decimal(str(r['paid'])) for r in state['rows'] if (r.get('owner_id') or r['policy_id'])==owner),Decimal(0))
+        root=next((p for p in members if p['id']==owner),members[0])
+        calculations.append({'id':owner,'members':sorted(p['id'] for p in members),'line':root['base']['_line'],'code':'SUPPLEMENT' if expected>paid else 'REFUND' if expected<paid else 'EVEN','expected':str(expected),'paid':str(paid),'difference':str(expected-paid),'segments':segments})
         total+=expected;paidtotal+=paid
     state['calculations']=calculations;state['business']={'total':str(total),'paid':str(paidtotal),'difference':str(total-paidtotal),'unit':'CNY'};return state
